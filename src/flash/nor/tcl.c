@@ -450,7 +450,7 @@ COMMAND_HANDLER(handle_flash_write_image_command)
 	}
 
 	if ((retval == ERROR_OK) && (duration_measure(&bench) == ERROR_OK)) {
-		command_print(CMD, "wrote %" PRIu32 " bytes from file %s "
+		LOG_INFO("wrote %" PRIu32 " bytes from file %s "
 			"in %fs (%0.3f KiB/s)", written, CMD_ARGV[0],
 			duration_elapsed(&bench), duration_kbps(&bench, written));
 	}

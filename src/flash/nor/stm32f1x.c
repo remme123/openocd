@@ -68,6 +68,7 @@
 #define FLASH_OPTER			(1 << 5)
 #define FLASH_STRT			(1 << 6)
 #define FLASH_LOCK			(1 << 7)
+#define FLASH_SMPSEL		(1 << 8)
 #define FLASH_OPTWRE		(1 << 9)
 #define FLASH_OBL_LAUNCH	(1 << 13)	/* except stm32f1x series */
 
@@ -509,7 +510,7 @@ static int stm32x_write_block_async(struct flash_bank *bank, const uint8_t *buff
 	armv7m_info.common_magic = ARMV7M_COMMON_MAGIC;
 	armv7m_info.core_mode = ARM_MODE_THREAD;
 
-	retval = target_run_flash_async_algorithm(target, buffer, hwords_count, 2,
+	retval = target_run_flash_async_algorithm(target, buffer, hwords_count, 4,
 			0, NULL,
 			ARRAY_SIZE(reg_params), reg_params,
 			source->address, source->size,
@@ -721,7 +722,7 @@ static int stm32x_write(struct flash_bank *bank, const uint8_t *buffer,
 		goto reset_pg_and_lock;
 
 	/* write to flash */
-	retval = stm32x_write_block(bank, buffer, bank->base + offset, count / 2);
+	retval = stm32x_write_block(bank, buffer, bank->base + offset, count / 4);
 
 reset_pg_and_lock:
 	retval2 = target_write_u32(target, stm32x_get_flash_reg(bank, STM32_FLASH_CR), FLASH_LOCK);
@@ -969,6 +970,12 @@ static int stm32x_probe(struct flash_bank *bank)
 		stm32x_info->option_offset = 6;
 		stm32x_info->default_rdp = 0xAA;
 		stm32x_info->can_load_options = true;
+		break;
+	case 0x511: /* N32G455 */
+		page_size = 2048;
+		stm32x_info->ppage_size = 2;
+		max_flash_size_in_kb = 512;
+		stm32x_info->user_bank_size = 512 * 1024;
 		break;
 	default:
 		LOG_WARNING("Cannot identify target as a STM32 family.");
@@ -1304,6 +1311,11 @@ static int get_stm32x_info(struct flash_bank *bank, struct command_invocation *c
 	case 0x442:
 		device_str = "STM32F09x";
 		rev_str = get_stm32f0_revision(rev_id);
+		break;
+
+	case 0x511: /* N32G455 */
+		device_str = "N32G455";
+		rev_str = "A";
 		break;
 
 	default:

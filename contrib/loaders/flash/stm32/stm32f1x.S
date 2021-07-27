@@ -40,6 +40,9 @@
 	.thumb_func
 	.global _start
 _start:
+	#movs	r0, #0
+	#str 	r0, [r2, #4]
+	#bkpt	#0
 wait_fifo:
 	ldr 	r6, [r2, #0]	/* read wp */
 	cmp 	r6, #0			/* abort if wp == 0 */
@@ -47,10 +50,10 @@ wait_fifo:
 	ldr 	r5, [r2, #4]	/* read rp */
 	cmp 	r5, r6			/* wait until rp != wp */
 	beq 	wait_fifo
-	ldrh	r6, [r5]	/* "*target_address++ = *rp++" */
-	strh	r6, [r4]
-	adds	r5, #2
-	adds	r4, #2
+	ldr 	r6, [r5]	/* "*target_address++ = *rp++" */
+	str 	r6, [r4]
+	adds	r5, #4
+	adds	r4, #4
 busy:
 	ldr 	r6, [r0, #STM32_FLASH_SR_OFFSET]	/* wait until BSY flag is reset */
 	movs	r7, #1
@@ -70,7 +73,7 @@ no_wrap:
 	beq     exit		/* loop if not done */
 	b	wait_fifo
 error:
-	movs	r0, #0
+	movs	r0, r6
 	str 	r0, [r2, #4]	/* set rp = 0 on error */
 exit:
 	mov		r0, r6			/* return status in r0 */

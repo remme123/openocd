@@ -1105,6 +1105,7 @@ int target_run_flash_async_algorithm(struct target *target,
 			thisrun_bytes -= (rp + thisrun_bytes) & 0x03;
 
 		/* Write data to fifo */
+		LOG_INFO("write %6d bytes data into ringbuffer", thisrun_bytes);
 		retval = target_write_buffer(target, wp, thisrun_bytes, buffer);
 		if (retval != ERROR_OK)
 			break;
@@ -3400,7 +3401,7 @@ void target_handle_md_output(struct command_invocation *cmd,
 		struct target *target, target_addr_t address, unsigned size,
 		unsigned count, const uint8_t *buffer)
 {
-	const unsigned line_bytecnt = 32;
+	const unsigned line_bytecnt = 16;
 	unsigned line_modulo = line_bytecnt / size;
 
 	char output[line_bytecnt * 4 + 1];
